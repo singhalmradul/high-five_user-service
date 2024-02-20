@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
-import io.github.singhalmradul.userservice.views.UserViews;
+import io.github.singhalmradul.userservice.views.UserMinimalView;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -27,14 +27,14 @@ public class User implements Serializable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @JsonView(UserViews.Minimal.class)
+    @JsonView(UserMinimalView.class)
     private UUID id;
 
     @Column(nullable = false)
-    @JsonView(UserViews.Minimal.class)
+    @JsonView(UserMinimalView.class)
     private String username;
 
-    @JsonView(UserViews.Minimal.class)
+    @JsonView(UserMinimalView.class)
     private String profilePicture;
 
     @Column(nullable = false)
