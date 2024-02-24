@@ -1,4 +1,3 @@
 package io.github.singhalmradul.userservice.views;
 
-public interface UserMinimalView {
-}
+public interface UserView {}

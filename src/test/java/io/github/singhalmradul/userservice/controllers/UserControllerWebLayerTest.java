@@ -18,14 +18,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import io.github.singhalmradul.userservice.exceptions.UserNotFoundException;
 import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.services.UserService;
-import io.github.singhalmradul.userservice.views.UserMinimalView;
+import io.github.singhalmradul.userservice.views.MinimalUser;
 
 @WebMvcTest(UserController.class)
 @DisplayName("UserController web layer test")
@@ -48,56 +48,82 @@ class UserControllerWebLayerTest {
         user.setFirstName("first");
         user.setId(UUID.randomUUID());
         user.setLastName("last");
-        user.setProfilePicture("#");
+        user.setProfilePictureUrl("#");
         user.setUsername("username");
 
     }
 
+    @DisplayName("valid id, minimal = false")
     @Test
     @SuppressWarnings("null")
-    @DisplayName("test get full user")
-    void testGetUser_whenMinimalIsFalse_viewFullUser() throws Exception {
+    void testGetUserById_whenIdIsInvalidAndMinimalIsFalse_viewFullUser() throws Exception {
 
-        MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(user);
-
-        when(userService.getUser(user.getId(), false))
-            .thenReturn(mappingJacksonValue);
+        when(userService.getUserById(user.getId(), User.class))
+            .thenReturn(user);
 
         mockMvc.perform(get("/users/" + user.getId()))
             .andExpect(status().isOk())
             .andExpect(content().json(
-                json().defaultViewInclusion(false).build()
+                json().build()
                 .registerModule(new JavaTimeModule())
                 .disable(WRITE_DATES_AS_TIMESTAMPS)
                 .writeValueAsString(user)
             ));
 
+        }
+
+    @DisplayName("invalid id,  minimal = false")
+    @Test
+    void testGetUserById_whenIdIsValidAndMinimalIsFalse_viewFullUser() throws Exception {
+
+        UUID id = UUID.randomUUID();
+        when(userService.getUserById(id, User.class))
+            .thenThrow(new UserNotFoundException("no user exists for the provided id" + id));
+
+        mockMvc.perform(get("/users/" + id))
+            .andExpect(status().isBadRequest());
+
     }
 
+    @DisplayName("invalid id,  minimal = true")
+    @Test
+    void testGetUserById_whenIdIsValidAndMinimalIsTrue_viewFullUser() throws Exception {
+
+        UUID id = UUID.randomUUID();
+        when(userService.getUserById(id, User.class))
+            .thenThrow(new UserNotFoundException("no user exists for the provided id" + id));
+
+        mockMvc.perform(get("/users/" + id + "minimal=true"))
+            .andExpect(status().isBadRequest());
+
+    }
+
+    @DisplayName("valid id, minimal = true")
     @Test
     @SuppressWarnings("null")
-    @DisplayName("test get minimal user")
-    void testGetUser_whenMinimalIsTrue_viewMinimalUser() throws Exception {
+    void testGetUserById_whenValidIdIsProvidedAndMinimalIsTrue_viewMinimalUser() throws Exception {
 
-        MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(user);
-        mappingJacksonValue.setSerializationView(UserMinimalView.class);
+        MinimalUser minimalUser = new MinimalUser(
+            user.getId(),
+            user.getUsername(),
+            user.getProfilePictureUrl()
+        );
 
-        when(userService.getUser(user.getId(), false))
-            .thenReturn(mappingJacksonValue);
+        when(userService.getUserById(user.getId(), MinimalUser.class))
+            .thenReturn(minimalUser);
 
-        mockMvc.perform(get("/users/" + user.getId()))
+        mockMvc.perform(get("/users/" + minimalUser.id() + "?minimal=true"))
             .andExpect(status().isOk())
             .andExpect(content().json(
-                json().defaultViewInclusion(false).build()
-                .writerWithView(UserMinimalView.class)
-                .writeValueAsString(user)
+                json().build()
+                .writeValueAsString(minimalUser)
             ));
 
     }
 
+    @DisplayName("all users, minimal = false")
     @Test
     @SuppressWarnings("null")
-    @DisplayName("test get full all users")
     void testGetAllUsers_whenMinimalIsFalse_viewFullUsers() throws Exception {
 
         List<User> users = new ArrayList<>();
@@ -109,19 +135,18 @@ class UserControllerWebLayerTest {
             tempUser.setFirstName(user.getFirstName());
             tempUser.setId(UUID.randomUUID());
             tempUser.setLastName(user.getLastName());
-            tempUser.setProfilePicture(user.getProfilePicture());
+            tempUser.setProfilePictureUrl(user.getProfilePictureUrl());
             tempUser.setUsername("username" + f);
+            users.add(tempUser);
         }
 
-        MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(users);
+        when(userService.getAllUsers(User.class))
+            .thenReturn(users);
 
-        when(userService.getUser(user.getId(), false))
-            .thenReturn(mappingJacksonValue);
-
-        mockMvc.perform(get("/users/" + user.getId()))
+        mockMvc.perform(get("/users"))
             .andExpect(status().isOk())
             .andExpect(content().json(
-                json().defaultViewInclusion(false).build()
+                json().build()
                 .registerModule(new JavaTimeModule())
                 .disable(WRITE_DATES_AS_TIMESTAMPS)
                 .writeValueAsString(users)
@@ -129,35 +154,29 @@ class UserControllerWebLayerTest {
 
     }
 
+    @DisplayName("all users, minimal = true")
     @Test
     @SuppressWarnings("null")
-    @DisplayName("test get minimal all users")
     void testGetAllUsers_whenMinimalIsTrue_viewMinimalUsers() throws Exception {
 
-        List<User> users = new ArrayList<>();
+        List<MinimalUser> users = new ArrayList<>();
 
         for (var f = 0; f < 3; f++) {
-            User tempUser = new User();
-            tempUser.setCreatedAt(LocalDateTime.now());
-            tempUser.setEmail("e" + f + "@mail.com");
-            tempUser.setFirstName(user.getFirstName());
-            tempUser.setId(UUID.randomUUID());
-            tempUser.setLastName(user.getLastName());
-            tempUser.setProfilePicture(user.getProfilePicture());
-            tempUser.setUsername("username" + f);
+            MinimalUser tempUser = new MinimalUser(
+                UUID.randomUUID(),
+                user.getUsername() + f,
+                user.getProfilePictureUrl() + f
+            );
+            users.add(tempUser);
         }
 
-        MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(users);
-        mappingJacksonValue.setSerializationView(UserMinimalView.class);
+        when(userService.getAllUsers(MinimalUser.class))
+            .thenReturn(users);
 
-        when(userService.getUser(user.getId(), false))
-            .thenReturn(mappingJacksonValue);
-
-        mockMvc.perform(get("/users/" + user.getId()))
+        mockMvc.perform(get("/users?minimal=true"))
             .andExpect(status().isOk())
             .andExpect(content().json(
-                json().defaultViewInclusion(false).build()
-                .writerWithView(UserMinimalView.class)
+                json().build()
                 .writeValueAsString(users)
             ));
 

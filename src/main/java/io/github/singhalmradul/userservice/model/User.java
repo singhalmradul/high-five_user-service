@@ -4,9 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonView;
-
-import io.github.singhalmradul.userservice.views.UserMinimalView;
+import io.github.singhalmradul.userservice.views.UserView;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,19 +21,16 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User implements Serializable{
+public class User implements Serializable, UserView{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @JsonView(UserMinimalView.class)
     private UUID id;
 
     @Column(nullable = false)
-    @JsonView(UserMinimalView.class)
     private String username;
 
-    @JsonView(UserMinimalView.class)
-    private String profilePicture;
+    private String profilePictureUrl;
 
     @Column(nullable = false)
     private String firstName;

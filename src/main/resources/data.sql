@@ -6,7 +6,7 @@ INSERT INTO "public"."user_record" (
     "email",
     "first_name",
     "last_name",
-    "profile_picture",
+    "profile_picture_url",
     "username"
 )
 VALUES (

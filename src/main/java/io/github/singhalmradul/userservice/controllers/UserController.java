@@ -1,14 +1,17 @@
 package io.github.singhalmradul.userservice.controllers;
 
+import java.util.Collection;
 import java.util.UUID;
 
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.services.UserService;
+import io.github.singhalmradul.userservice.views.MinimalUser;
+import io.github.singhalmradul.userservice.views.UserView;
 
 @RestController
 public class UserController {
@@ -20,19 +23,23 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public MappingJacksonValue getAllUsers(
+    public Collection<? extends UserView> getAllUsers(
 
         @RequestParam(defaultValue = "false")
         boolean minimal
 
     ) {
 
-        return userService.getAllUsers(minimal);
+        if (minimal) {
+            return userService.getAllUsers(MinimalUser.class);
+        }
+
+        return userService.getAllUsers(User.class);
 
     }
 
     @GetMapping("/users/{id}")
-    public MappingJacksonValue getUser(
+    public UserView getUser(
 
         @PathVariable
         UUID id,
@@ -42,7 +49,11 @@ public class UserController {
 
     ) {
 
-        return userService.getUser(id, minimal);
+        if (minimal) {
+            return userService.getUserById(id, MinimalUser.class);
+        }
+
+        return userService.getUserById(id, User.class);
 
     }
 

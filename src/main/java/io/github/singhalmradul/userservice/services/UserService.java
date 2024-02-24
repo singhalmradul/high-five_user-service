@@ -1,13 +1,14 @@
 package io.github.singhalmradul.userservice.services;
 
+import java.util.Collection;
 import java.util.UUID;
 
-import org.springframework.http.converter.json.MappingJacksonValue;
+import io.github.singhalmradul.userservice.views.UserView;
 
 public interface UserService {
 
-    MappingJacksonValue getAllUsers(boolean minimal);
+    <T extends UserView> Collection<T> getAllUsers(Class<T> type);
 
-    MappingJacksonValue getUser(UUID id, boolean minimal);
-    
+    <T extends UserView> T getUserById(UUID id, Class<T> type);
+
 }
