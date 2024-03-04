@@ -1,5 +1,7 @@
 package io.github.singhalmradul.userservice.model;
 
+import static jakarta.persistence.GenerationType.UUID;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -8,7 +10,6 @@ import io.github.singhalmradul.userservice.views.UserView;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
@@ -24,7 +25,7 @@ import lombok.Setter;
 public class User implements Serializable, UserView{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = UUID)
     private UUID id;
 
     @Column(nullable = false)

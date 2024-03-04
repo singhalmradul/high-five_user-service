@@ -1,6 +1,7 @@
 package io.github.singhalmradul.userservice.controllers;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+import static java.util.UUID.randomUUID;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,27 +42,27 @@ class UserControllerWebLayerTest {
 
     @BeforeEach
     void beforeEach() {
-
+        // Create a user object for testing
         user = new User();
         user.setCreatedAt(LocalDateTime.now());
         user.setEmail("e@mail.com");
         user.setFirstName("first");
-        user.setId(UUID.randomUUID());
+        user.setId(randomUUID());
         user.setLastName("last");
         user.setProfilePictureUrl("#");
         user.setUsername("username");
-
     }
 
     @DisplayName("valid id, minimal = false")
     @Test
     @SuppressWarnings("null")
     void testGetUserById_whenIdIsInvalidAndMinimalIsFalse_viewFullUser() throws Exception {
-
+        // Mock the userService to return the user object
         when(userService.getUserById(user.getId(), User.class))
-            .thenReturn(user);
+        .thenReturn(user);
 
-        mockMvc.perform(get("/users/" + user.getId()))
+        mockMvc
+            .perform(get("/users/" + user.getId()))
             .andExpect(status().isOk())
             .andExpect(content().json(
                 json().build()
@@ -69,81 +70,86 @@ class UserControllerWebLayerTest {
                 .disable(WRITE_DATES_AS_TIMESTAMPS)
                 .writeValueAsString(user)
             ));
-
-        }
+    }
 
     @DisplayName("invalid id,  minimal = false")
     @Test
     void testGetUserById_whenIdIsValidAndMinimalIsFalse_viewFullUser() throws Exception {
+        UUID id = randomUUID();
 
-        UUID id = UUID.randomUUID();
+        // Mock the userService to throw UserNotFoundException
         when(userService.getUserById(id, User.class))
-            .thenThrow(new UserNotFoundException("no user exists for the provided id" + id));
+        .thenThrow(new UserNotFoundException("no user exists for the provided id" + id));
 
-        mockMvc.perform(get("/users/" + id))
+        mockMvc
+            .perform(get("/users/" + id))
             .andExpect(status().isBadRequest());
-
     }
 
     @DisplayName("invalid id,  minimal = true")
     @Test
     void testGetUserById_whenIdIsValidAndMinimalIsTrue_viewFullUser() throws Exception {
+        UUID id = randomUUID();
 
-        UUID id = UUID.randomUUID();
+        // Mock the userService to throw UserNotFoundException
         when(userService.getUserById(id, User.class))
-            .thenThrow(new UserNotFoundException("no user exists for the provided id" + id));
+        .thenThrow(new UserNotFoundException("no user exists for the provided id" + id));
 
-        mockMvc.perform(get("/users/" + id + "minimal=true"))
+        mockMvc
+            .perform(get("/users/" + id + "minimal=true"))
             .andExpect(status().isBadRequest());
-
     }
 
     @DisplayName("valid id, minimal = true")
     @Test
     @SuppressWarnings("null")
     void testGetUserById_whenValidIdIsProvidedAndMinimalIsTrue_viewMinimalUser() throws Exception {
-
         MinimalUser minimalUser = new MinimalUser(
             user.getId(),
             user.getUsername(),
             user.getProfilePictureUrl()
         );
 
+        // Mock the userService to return the minimalUser object
         when(userService.getUserById(user.getId(), MinimalUser.class))
-            .thenReturn(minimalUser);
+        .thenReturn(minimalUser);
 
-        mockMvc.perform(get("/users/" + minimalUser.id() + "?minimal=true"))
+        mockMvc
+            .perform(get("/users/" + minimalUser.id() + "?minimal=true"))
             .andExpect(status().isOk())
             .andExpect(content().json(
                 json().build()
                 .writeValueAsString(minimalUser)
             ));
-
     }
 
     @DisplayName("all users, minimal = false")
     @Test
     @SuppressWarnings("null")
     void testGetAllUsers_whenMinimalIsFalse_viewFullUsers() throws Exception {
-
         List<User> users = new ArrayList<>();
 
+        // Create multiple user objects for testing
         for (var f = 0; f < 3; f++) {
             User tempUser = new User();
+
             tempUser.setCreatedAt(LocalDateTime.now());
             tempUser.setEmail("e" + f + "@mail.com");
             tempUser.setFirstName(user.getFirstName());
-            tempUser.setId(UUID.randomUUID());
+            tempUser.setId(randomUUID());
             tempUser.setLastName(user.getLastName());
             tempUser.setProfilePictureUrl(user.getProfilePictureUrl());
             tempUser.setUsername("username" + f);
+
             users.add(tempUser);
         }
 
+        // Mock the userService to return the list of users
         when(userService.getAllUsers(User.class))
-            .thenReturn(users);
+        .thenReturn(users);
 
-        mockMvc.perform(get("/users"))
+        mockMvc
+            .perform(get("/users"))
             .andExpect(status().isOk())
             .andExpect(content().json(
                 json().build()
@@ -151,35 +157,35 @@ class UserControllerWebLayerTest {
                 .disable(WRITE_DATES_AS_TIMESTAMPS)
                 .writeValueAsString(users)
             ));
-
     }
 
     @DisplayName("all users, minimal = true")
     @Test
     @SuppressWarnings("null")
     void testGetAllUsers_whenMinimalIsTrue_viewMinimalUsers() throws Exception {
-
         List<MinimalUser> users = new ArrayList<>();
 
+        // Create multiple minimalUser objects for testing
         for (var f = 0; f < 3; f++) {
             MinimalUser tempUser = new MinimalUser(
-                UUID.randomUUID(),
+                randomUUID(),
                 user.getUsername() + f,
                 user.getProfilePictureUrl() + f
             );
+
             users.add(tempUser);
         }
 
+        // Mock the userService to return the list of minimalUsers
         when(userService.getAllUsers(MinimalUser.class))
-            .thenReturn(users);
+        .thenReturn(users);
 
-        mockMvc.perform(get("/users?minimal=true"))
+        mockMvc
+            .perform(get("/users?minimal=true"))
             .andExpect(status().isOk())
             .andExpect(content().json(
                 json().build()
                 .writeValueAsString(users)
             ));
-
     }
-
 }

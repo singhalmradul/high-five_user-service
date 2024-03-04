@@ -2,7 +2,7 @@
 eureka:
   client:
     service-url:
-      defaultZone: http://naming-server:8761/eureka
+      defaultZone: http://service-registry:8761/eureka
 
 server:
   port: 22222
@@ -27,7 +27,7 @@ spring:
 
     hibernate:
       ddl-auto: create-drop
-      
+
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
