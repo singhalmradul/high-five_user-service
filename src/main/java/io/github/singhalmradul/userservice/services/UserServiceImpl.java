@@ -1,14 +1,13 @@
 package io.github.singhalmradul.userservice.services;
 
-import java.util.Collection;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import io.github.singhalmradul.userservice.exceptions.UserNotFoundException;
 import io.github.singhalmradul.userservice.repositories.UserRepository;
 import io.github.singhalmradul.userservice.views.UserView;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -20,23 +19,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public <T extends UserView> Collection<T> getAllUsers(Class<T> type) {
+    public <T extends UserView> Flux<T> getAllUsers(Class<T> type) {
 
         return userRepository.findBy(type);
 
     }
 
     @Override
-    public <T extends UserView> T getUserById(UUID id, Class<T> type) {
-
-        Optional<T> user = userRepository.findById(id, type);
-
-        if (user.isEmpty()) {
-            throw new UserNotFoundException("no user exists for the provided id" +  id);
-        }
-
-        return user.get();
-
+    public <T extends UserView> Mono<T> getUserById(UUID id, Class<T> type) {
+        return userRepository.findById(id, type);
     }
 
 }
