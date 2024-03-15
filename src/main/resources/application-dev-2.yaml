@@ -1,0 +1,24 @@
+eureka:
+  client:
+    enabled: false
+logging:
+  level:
+    '[org.springframework.data.mongodb.core]': DEBUG
+
+server:
+  port: 22222
+
+spring:
+  application:
+    name: user-service
+
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/high-five}
+      database: high-five
+      uuid-representation: standard
+
+  sql:
+    init:
+      mode: always
+      platform: postgres
