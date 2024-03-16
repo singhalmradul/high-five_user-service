@@ -25,13 +25,14 @@ import io.github.singhalmradul.userservice.handlers.UserHandler;
 import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.services.UserService;
 import io.github.singhalmradul.userservice.validators.UUIDValidator;
+import io.github.singhalmradul.userservice.validators.UserValidator;
 import io.github.singhalmradul.userservice.views.MinimalUser;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @WebFluxTest
-@Import({ RouterConfiguration.class, UserHandler.class, UUIDValidator.class })
-@DisplayName("web layer test")
+@Import({ RouterConfiguration.class, UserHandler.class, UUIDValidator.class, UserValidator.class})
+@DisplayName("user routes web layer test")
 class UserRoutesWebLayerTest {
 
     @Autowired
@@ -59,11 +60,11 @@ class UserRoutesWebLayerTest {
         user.setUsername("username");
     }
 
-    @DisplayName("valid id, minimal = false")
+    @DisplayName("GET /users/{id}: get user")
     @Test
     @SuppressWarnings("null")
-    void testGetUserById_whenIdIsInvalidAndMinimalIsFalse_viewFullUser() throws Exception {
-        // Mock the userService to return the user object
+    void testGetUserById_shouldReturnHttpStatusCodeOkAndBodyIsUser() throws Exception {
+
         when(userService.getUserById(user.getId(), User.class))
         .thenReturn(Mono.just(user));
 
@@ -80,10 +81,10 @@ class UserRoutesWebLayerTest {
             });
     }
 
-    @DisplayName("invalid id,  minimal = false")
+    @DisplayName("GET /users/{id}: invalid uuid")
     @Test
     @SuppressWarnings("null")
-    void testGetUserById_whenIdIsValidAndMinimalIsFalse_viewFullUser() throws Exception {
+    void testGetUserById_whenIdIsNotValidUuid_shouldReturnHttpStatusBadRequest() throws Exception {
         var id = 1;
 
         webTestClient
@@ -91,33 +92,32 @@ class UserRoutesWebLayerTest {
             .expectStatus().isBadRequest();
     }
 
-    @DisplayName("invalid id,  minimal = true")
+    @DisplayName("GET /users/{id}: invalid uuid,  view = minimal")
     @Test
     @SuppressWarnings("null")
-    void testGetUserById_whenIdIsValidAndMinimalIsTrue_viewFullUser() throws Exception {
+    void testGetUserById_whenQueryParamViewIsEqualToMinimal_returnHttpStatusBadRequest() throws Exception {
         var id = 1;
 
         webTestClient
-            .get().uri(URI.create("/users/" + id + "?minimal=true")).exchange()
+            .get().uri(URI.create("/users/" + id + "?view=minimal")).exchange()
             .expectStatus().isBadRequest();
     }
 
-    @DisplayName("valid id, minimal = true")
+    @DisplayName("GET /users/{id}: get user by id, view = minimal")
     @Test
     @SuppressWarnings("null")
-    void testGetUserById_whenValidIdIsProvidedAndMinimalIsTrue_viewMinimalUser() throws Exception {
+    void testGetUserById_whenValidIdIsProvidedAndQueryParamViewIsEqualToMinimal_shouldReturnHttpStatusCodeOkAndBodyIsMinimalUser() throws Exception {
         MinimalUser minimalUser = new MinimalUser(
             user.getId(),
             user.getUsername(),
             user.getProfilePictureUrl()
         );
 
-        // Mock the userService to return the minimalUser object
         when(userService.getUserById(user.getId(), MinimalUser.class))
         .thenReturn(Mono.just(minimalUser));
 
         webTestClient
-            .get().uri(URI.create("/users/" + user.getId() + "?minimal=true")).exchange()
+            .get().uri(URI.create("/users/" + user.getId() + "?view=minimal")).exchange()
             .expectStatus().isOk()
             .expectBody(MinimalUser.class).consumeWith(response -> {
                 MinimalUser returnedUser = response.getResponseBody();
@@ -127,13 +127,12 @@ class UserRoutesWebLayerTest {
             });
     }
 
-    @DisplayName("all users, minimal = false")
+    @DisplayName("GET /users: get all users")
     @Test
     @SuppressWarnings("null")
-    void testGetAllUsers_whenMinimalIsFalse_viewFullUsers() throws Exception {
+    void testGetAllUsers_shouldReturnHttpStatusCodeOkWithBodyListOfAllUsers() throws Exception {
         List<User> users = new ArrayList<>();
 
-        // Create multiple user objects for testing
         for (var f = 0; f < 3; f++) {
             User tempUser = new User();
 
@@ -146,7 +145,6 @@ class UserRoutesWebLayerTest {
             users.add(tempUser);
         }
 
-        // Mock the userService to return the list of users
         when(userService.getAllUsers(User.class))
         .thenReturn(Flux.fromIterable(users));
 
@@ -165,13 +163,12 @@ class UserRoutesWebLayerTest {
             });
     }
 
-    @DisplayName("all users, minimal = true")
+    @DisplayName("GET /users: get all users, view = minimal")
     @Test
     @SuppressWarnings("null")
-    void testGetAllUsers_whenMinimalIsTrue_viewMinimalUsers() throws Exception {
+    void testGetAllUsers_whenQueryParamViewIsEqualToMinimal_shouldReturnHttpStatusCodeOkWihBodyListOfMinimalUsers() throws Exception {
         List<MinimalUser> users = new ArrayList<>();
 
-        // Create multiple minimalUser objects for testing
         for (var f = 0; f < 3; f++) {
             MinimalUser tempUser = new MinimalUser(
                 randomUUID(),
@@ -182,11 +179,10 @@ class UserRoutesWebLayerTest {
             users.add(tempUser);
         }
 
-        // Mock the userService to return the list of minimalUsers
         when(userService.getAllUsers(MinimalUser.class))
         .thenReturn(Flux.fromIterable(users));
 
-        webTestClient.get().uri(URI.create("/users?minimal=true")).exchange()
+        webTestClient.get().uri(URI.create("/users?view=minimal")).exchange()
             .expectStatus().isOk()
             .expectBodyList(MinimalUser.class).hasSize(3)
             .consumeWith(response -> {
@@ -197,5 +193,44 @@ class UserRoutesWebLayerTest {
                     assertEquals(users.get(f).profilePictureUrl(), returnedUsers.get(f).profilePictureUrl());
                 }
             });
+    }
+
+    @DisplayName("POST /users: create user")
+    @Test
+    @SuppressWarnings("null")
+    void testCreateUser_shouldReturnHttpStatusCodeCreatedAndBodyIsUser() throws Exception {
+        when(userService.createUser(user))
+        .thenReturn(Mono.just(user));
+
+        webTestClient
+            .post().uri(URI.create("/users"))
+            .bodyValue(user)
+            .exchange()
+            .expectStatus().isCreated()
+            .expectBody(User.class).consumeWith(response -> {
+                User returnedUser = response.getResponseBody();
+                assertEquals(user.getId(), returnedUser.getId());
+                assertEquals(user.getEmail(), returnedUser.getEmail());
+                assertEquals(user.getDisplayName(), returnedUser.getDisplayName());
+                assertEquals(user.getProfilePictureUrl(), returnedUser.getProfilePictureUrl());
+                assertEquals(user.getUsername(), returnedUser.getUsername());
+            });
+    }
+
+    @DisplayName("POST /users: create user, invalid user")
+    @Test
+    @SuppressWarnings({ "null", "unused" })
+    void testCreateUser_whenUserIsInvalid_shouldReturnHttpStatusBadRequest() throws Exception {
+        Object invalidUser = new Object() {
+            public String getUsername() {
+                return null;
+            }
+        };
+
+        webTestClient
+            .post().uri(URI.create("/users"))
+            .bodyValue(invalidUser)
+            .exchange()
+            .expectStatus().isBadRequest();
     }
 }

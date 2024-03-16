@@ -1,6 +1,5 @@
 package io.github.singhalmradul.userservice.model;
 
-import java.io.Serializable;
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
@@ -13,7 +12,7 @@ import lombok.Data;
 
 @Document(collection = "users")
 @Data
-public class User implements Serializable, UserView{
+public class User implements UserView{
 
     @Id
     private UUID id;
@@ -23,11 +22,11 @@ public class User implements Serializable, UserView{
 
     private String profilePictureUrl;
 
-    @NotNull
     private String displayName;
 
     @Email
     @NotNull
     private String email;
 
+    private String bio;
 }
