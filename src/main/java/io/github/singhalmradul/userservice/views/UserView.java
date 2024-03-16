@@ -1,3 +1,5 @@
 package io.github.singhalmradul.userservice.views;
 
-public interface UserView {}
+import java.io.Serializable;
+
+public interface UserView extends Serializable {}

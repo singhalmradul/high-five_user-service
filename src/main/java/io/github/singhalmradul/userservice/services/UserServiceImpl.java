@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import io.github.singhalmradul.userservice.exceptions.UserNotFoundException;
+import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.repositories.UserRepository;
 import io.github.singhalmradul.userservice.views.UserView;
 import reactor.core.publisher.Flux;
@@ -27,7 +29,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public <T extends UserView> Mono<T> getUserById(UUID id, Class<T> type) {
-        return userRepository.findById(id, type);
+
+        var user = userRepository.findById(id, type);
+        return user.doOnNext(user1 -> {
+            if (user1 == null) {
+                throw new UserNotFoundException("user with id '" + id + "' doesn't exist");
+            }
+        });
+    }
+
+    @Override
+    public Mono<User> createUser(User user) {
+        return userRepository.save(user);
     }
 
 }

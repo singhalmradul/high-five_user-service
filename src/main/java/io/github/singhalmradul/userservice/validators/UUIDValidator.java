@@ -13,19 +13,21 @@ public class UUIDValidator implements Validator {
 
     @Override
     public boolean supports(Class<?> clazz) {
-        // This validator supports String class
-        return String.class.equals(clazz);
+        return String.class.isAssignableFrom(clazz);
     }
 
     @Override
     public void validate(Object target, Errors errors) {
-        String uuidStr = (String) target;
-        try {
-            // Try to parse the string as a UUID
-            UUID.fromString(uuidStr);
-        } catch (IllegalArgumentException e) {
-            // If parsing fails, register an error
-            errors.rejectValue(null, "invalid UUID", "'" + uuidStr + "' is not a valid UUID");
+
+        if (target instanceof String uuid) {
+            try {
+                UUID.fromString(uuid);
+            } catch (IllegalArgumentException e) {
+                errors.rejectValue(null, "invalid UUID", "'" + uuid + "' is not a valid UUID");
+            }
+
+        } else {
+            errors.rejectValue(null, "invalid UUID", "unrecognized value: '" + target + "'");
         }
     }
 }
