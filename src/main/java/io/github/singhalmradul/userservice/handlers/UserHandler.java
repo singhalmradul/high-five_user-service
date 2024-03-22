@@ -16,10 +16,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebInputException;
 
 import io.github.singhalmradul.userservice.model.User;
+import io.github.singhalmradul.userservice.projections.UserDisplayViewProjection;
 import io.github.singhalmradul.userservice.services.UserService;
 import io.github.singhalmradul.userservice.validators.UUIDValidator;
 import io.github.singhalmradul.userservice.validators.UserValidator;
-import io.github.singhalmradul.userservice.views.MinimalUser;
 import io.github.singhalmradul.userservice.views.UserView;
 import lombok.AllArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -41,7 +41,7 @@ public class UserHandler {
     }
 
     private Class<? extends UserView> getViewType(ServerRequest request) {
-        return isMinimalRequest(request) ? MinimalUser.class : User.class;
+        return isMinimalRequest(request) ? UserDisplayViewProjection.class : User.class;
     }
 
     public Mono<ServerResponse> getAllUsers(ServerRequest request) {

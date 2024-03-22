@@ -1,5 +1,7 @@
 package io.github.singhalmradul.userservice.validators;
 
+import java.util.regex.Pattern;
+
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -9,7 +11,9 @@ import jakarta.ws.rs.ext.ParamConverter.Lazy;
 
 @Lazy
 @Component
-public class UserValidator implements Validator{
+public class UserValidator implements Validator {
+
+    Pattern usernamePattern = Pattern.compile("^[a-z][a-z0-9]{0,14}$");
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -20,14 +24,17 @@ public class UserValidator implements Validator{
     public void validate(Object target, Errors errors) {
 
         if (target instanceof User user) {
-            if (user.getUsername() == null || user.getUsername().isEmpty()) {
-                errors.rejectValue("username", "username.empty", "username cannot be empty");
-            }
-            if (user.getEmail() == null || user.getEmail().isEmpty()) {
-                errors.rejectValue("email", "email.empty", "email cannot be empty");
+            if (user.getUsername() != null && !usernamePattern.matcher(user.getUsername()).matches()) {
+                errors.rejectValue(
+                    "username",
+                    "invalid username",
+                    """
+                        username must be 1-15 characters long,
+                        starting with a letter and containing only lowercase letters and numbers
+                    """
+                );
             }
         }
-
         else {
             errors.rejectValue(null, "invalid user", "unrecognized value: '" + target + "'");
         }

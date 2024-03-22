@@ -23,10 +23,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import io.github.singhalmradul.userservice.handlers.UserHandler;
 import io.github.singhalmradul.userservice.model.User;
+import io.github.singhalmradul.userservice.projections.UserDisplayViewProjection;
 import io.github.singhalmradul.userservice.services.UserService;
 import io.github.singhalmradul.userservice.validators.UUIDValidator;
 import io.github.singhalmradul.userservice.validators.UserValidator;
-import io.github.singhalmradul.userservice.views.MinimalUser;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -53,7 +53,6 @@ class UserRoutesWebLayerTest {
         webTestClient = bindToRouterFunction(userRoutes).build();
         // Create a user object for testing
         user = new User();
-        user.setEmail("e@mail.com");
         user.setId(randomUUID());
         user.setDisplayName("displayName");
         user.setProfilePictureUrl("#");
@@ -74,7 +73,6 @@ class UserRoutesWebLayerTest {
             .expectBody(User.class).consumeWith(response -> {
                 User returnedUser = response.getResponseBody();
                 assertEquals(user.getId(), returnedUser.getId());
-                assertEquals(user.getEmail(), returnedUser.getEmail());
                 assertEquals(user.getDisplayName(), returnedUser.getDisplayName());
                 assertEquals(user.getProfilePictureUrl(), returnedUser.getProfilePictureUrl());
                 assertEquals(user.getUsername(), returnedUser.getUsername());
@@ -107,20 +105,20 @@ class UserRoutesWebLayerTest {
     @Test
     @SuppressWarnings("null")
     void testGetUserById_whenValidIdIsProvidedAndQueryParamViewIsEqualToMinimal_shouldReturnHttpStatusCodeOkAndBodyIsMinimalUser() throws Exception {
-        MinimalUser minimalUser = new MinimalUser(
+        UserDisplayViewProjection minimalUser = new UserDisplayViewProjection(
             user.getId(),
             user.getUsername(),
             user.getProfilePictureUrl()
         );
 
-        when(userService.getUserById(user.getId(), MinimalUser.class))
+        when(userService.getUserById(user.getId(), UserDisplayViewProjection.class))
         .thenReturn(Mono.just(minimalUser));
 
         webTestClient
             .get().uri(URI.create("/users/" + user.getId() + "?view=minimal")).exchange()
             .expectStatus().isOk()
-            .expectBody(MinimalUser.class).consumeWith(response -> {
-                MinimalUser returnedUser = response.getResponseBody();
+            .expectBody(UserDisplayViewProjection.class).consumeWith(response -> {
+                UserDisplayViewProjection returnedUser = response.getResponseBody();
                 assertEquals(minimalUser.id(), returnedUser.id());
                 assertEquals(minimalUser.username(), returnedUser.username());
                 assertEquals(minimalUser.profilePictureUrl(), returnedUser.profilePictureUrl());
@@ -136,7 +134,6 @@ class UserRoutesWebLayerTest {
         for (var f = 0; f < 3; f++) {
             User tempUser = new User();
 
-            tempUser.setEmail("e" + f + "@mail.com");
             tempUser.setId(randomUUID());
             tempUser.setDisplayName("displayName" + f);
             tempUser.setProfilePictureUrl(user.getProfilePictureUrl());
@@ -155,7 +152,6 @@ class UserRoutesWebLayerTest {
                 List<User> returnedUsers = response.getResponseBody();
                 for (var f = 0; f < 3; f++) {
                     assertEquals(users.get(f).getId(), returnedUsers.get(f).getId());
-                    assertEquals(users.get(f).getEmail(), returnedUsers.get(f).getEmail());
                     assertEquals(users.get(f).getDisplayName(), returnedUsers.get(f).getDisplayName());
                     assertEquals(users.get(f).getProfilePictureUrl(), returnedUsers.get(f).getProfilePictureUrl());
                     assertEquals(users.get(f).getUsername(), returnedUsers.get(f).getUsername());
@@ -167,10 +163,10 @@ class UserRoutesWebLayerTest {
     @Test
     @SuppressWarnings("null")
     void testGetAllUsers_whenQueryParamViewIsEqualToMinimal_shouldReturnHttpStatusCodeOkWihBodyListOfMinimalUsers() throws Exception {
-        List<MinimalUser> users = new ArrayList<>();
+        List<UserDisplayViewProjection> users = new ArrayList<>();
 
         for (var f = 0; f < 3; f++) {
-            MinimalUser tempUser = new MinimalUser(
+            UserDisplayViewProjection tempUser = new UserDisplayViewProjection(
                 randomUUID(),
                 user.getUsername() + f,
                 user.getProfilePictureUrl() + f
@@ -179,14 +175,14 @@ class UserRoutesWebLayerTest {
             users.add(tempUser);
         }
 
-        when(userService.getAllUsers(MinimalUser.class))
+        when(userService.getAllUsers(UserDisplayViewProjection.class))
         .thenReturn(Flux.fromIterable(users));
 
         webTestClient.get().uri(URI.create("/users?view=minimal")).exchange()
             .expectStatus().isOk()
-            .expectBodyList(MinimalUser.class).hasSize(3)
+            .expectBodyList(UserDisplayViewProjection.class).hasSize(3)
             .consumeWith(response -> {
-                List<MinimalUser> returnedUsers = response.getResponseBody();
+                List<UserDisplayViewProjection> returnedUsers = response.getResponseBody();
                 for (var f = 0; f < 3; f++) {
                     assertEquals(users.get(f).id(), returnedUsers.get(f).id());
                     assertEquals(users.get(f).username(), returnedUsers.get(f).username());
@@ -210,7 +206,6 @@ class UserRoutesWebLayerTest {
             .expectBody(User.class).consumeWith(response -> {
                 User returnedUser = response.getResponseBody();
                 assertEquals(user.getId(), returnedUser.getId());
-                assertEquals(user.getEmail(), returnedUser.getEmail());
                 assertEquals(user.getDisplayName(), returnedUser.getDisplayName());
                 assertEquals(user.getProfilePictureUrl(), returnedUser.getProfilePictureUrl());
                 assertEquals(user.getUsername(), returnedUser.getUsername());
