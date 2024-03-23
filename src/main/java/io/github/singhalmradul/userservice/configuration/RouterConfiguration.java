@@ -17,7 +17,7 @@ public class RouterConfiguration {
         return route()
             .GET("/users", handler::getAllUsers)
             .GET("/users/{id}", handler::getUserById)
-            .POST("/users", handler::createUser)
+            // .POST("/users", handler::createUser)
             .build();
     }
 }
