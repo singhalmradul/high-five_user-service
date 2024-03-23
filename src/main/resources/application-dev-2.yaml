@@ -17,6 +17,11 @@ spring:
       uri: ${MONGO_URI:mongodb://localhost:27017/high-five}
       database: high-five
       uuid-representation: standard
+  datasource:
+    url: jdbc:postgresql://localhost:5432/high-five
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
 
   sql:
     init:

@@ -9,6 +9,7 @@ import org.springframework.validation.Validator;
 
 @Lazy
 @Component
+@SuppressWarnings("null")
 public class UUIDValidator implements Validator {
 
     @Override

@@ -1,9 +1,7 @@
 package io.github.singhalmradul.userservice.handlers;
 
-import static org.springframework.web.reactive.function.server.ServerResponse.created;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
-import java.net.URI;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +15,9 @@ import org.springframework.web.server.ServerWebInputException;
 
 import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.services.UserService;
+import io.github.singhalmradul.userservice.validators.CompleteUserValidator;
 import io.github.singhalmradul.userservice.validators.UUIDValidator;
-import io.github.singhalmradul.userservice.validators.UserValidator;
+import io.github.singhalmradul.userservice.views.CompleteUser;
 import io.github.singhalmradul.userservice.views.MinimalUser;
 import io.github.singhalmradul.userservice.views.UserView;
 import lombok.AllArgsConstructor;
@@ -32,7 +31,7 @@ public class UserHandler {
     private UUIDValidator uuidValidator;
 
     @Lazy
-    private UserValidator userValidator;
+    private CompleteUserValidator userValidator;
 
     private UserService userService;
 
@@ -41,7 +40,7 @@ public class UserHandler {
     }
 
     private Class<? extends UserView> getViewType(ServerRequest request) {
-        return isMinimalRequest(request) ? MinimalUser.class : User.class;
+        return isMinimalRequest(request) ? MinimalUser.class : CompleteUser.class;
     }
 
     public Mono<ServerResponse> getAllUsers(ServerRequest request) {
@@ -64,16 +63,16 @@ public class UserHandler {
 
     }
 
-    public Mono<ServerResponse> createUser(ServerRequest request) {
+    // public Mono<ServerResponse> createUser(ServerRequest request) {
 
-        return request.bodyToMono(User.class)
-            .switchIfEmpty(
-                Mono.error(new ServerWebInputException("unrecognized value in request body"))
-            )
-            .doOnNext(this::validateUser)
-            .flatMap(user -> userService.createUser(user))
-            .flatMap(user -> created(URI.create("/users/" + user.getId())).bodyValue(user));
-    }
+    //     return request.bodyToMono(User.class)
+    //         .switchIfEmpty(
+    //             Mono.error(new ServerWebInputException("unrecognized value in request body"))
+    //         )
+    //         .doOnNext(this::validateUser)
+    //         .flatMap(user -> userService.createUser(user))
+    //         .flatMap(user -> created(URI.create("/users/" + user.getId())).bodyValue(user));
+    // }
 
     private void validateUUID(String id) {
 
