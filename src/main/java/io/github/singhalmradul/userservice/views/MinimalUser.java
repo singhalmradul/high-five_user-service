@@ -10,7 +10,7 @@ import io.github.singhalmradul.userservice.model.UserAccountDetails;
  * This class provides a minimal set of user information including the user's ID, displayName, and
  * profile picture URL.
  */
-public record MinimalUser(UUID id, String displayName, String profilePictureUrl) implements UserView {
+public record MinimalUser(UUID id, String displayName, String avatar) implements UserView {
 
     public MinimalUser(UserAccountDetails accountDetails, User user) {
 

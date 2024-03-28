@@ -56,7 +56,7 @@ class UserRoutesWebLayerTest {
             .email("e@mail.com")
             .id(randomUUID())
             .displayName("displayName")
-            .profilePictureUrl("#")
+            .avatar("#")
             .username("username")
             .build();
     }
@@ -77,7 +77,7 @@ class UserRoutesWebLayerTest {
                 assertEquals(user.id(), returnedUser.id());
                 assertEquals(user.email(), returnedUser.email());
                 assertEquals(user.displayName(), returnedUser.displayName());
-                assertEquals(user.profilePictureUrl(), returnedUser.profilePictureUrl());
+                assertEquals(user.avatar(), returnedUser.avatar());
                 assertEquals(user.username(), returnedUser.username());
             });
     }
@@ -111,7 +111,7 @@ class UserRoutesWebLayerTest {
         MinimalUser minimalUser = new MinimalUser(
             user.id(),
             user.username(),
-            user.profilePictureUrl()
+            user.avatar()
         );
 
         when(userService.getUserById(user.id(), MinimalUser.class))
@@ -124,7 +124,7 @@ class UserRoutesWebLayerTest {
                 MinimalUser returnedUser = response.getResponseBody();
                 assertEquals(minimalUser.id(), returnedUser.id());
                 assertEquals(minimalUser.displayName(), returnedUser.displayName());
-                assertEquals(minimalUser.profilePictureUrl(), returnedUser.profilePictureUrl());
+                assertEquals(minimalUser.avatar(), returnedUser.avatar());
             });
     }
 
@@ -139,7 +139,7 @@ class UserRoutesWebLayerTest {
                 .email("e" + f + "@mail.com")
                 .id(randomUUID())
                 .displayName("displayName" + f)
-                .profilePictureUrl(user.profilePictureUrl())
+                .avatar(user.avatar())
                 .username("username" + f)
                 .build();
 
@@ -158,7 +158,7 @@ class UserRoutesWebLayerTest {
                     assertEquals(users.get(f).id(), returnedUsers.get(f).id());
                     assertEquals(users.get(f).email(), returnedUsers.get(f).email());
                     assertEquals(users.get(f).displayName(), returnedUsers.get(f).displayName());
-                    assertEquals(users.get(f).profilePictureUrl(), returnedUsers.get(f).profilePictureUrl());
+                    assertEquals(users.get(f).avatar(), returnedUsers.get(f).avatar());
                     assertEquals(users.get(f).username(), returnedUsers.get(f).username());
                 }
             });
@@ -174,7 +174,7 @@ class UserRoutesWebLayerTest {
             MinimalUser tempUser = new MinimalUser(
                 randomUUID(),
                 user.username() + f,
-                user.profilePictureUrl() + f
+                user.avatar() + f
             );
 
             users.add(tempUser);
@@ -191,7 +191,7 @@ class UserRoutesWebLayerTest {
                 for (var f = 0; f < 3; f++) {
                     assertEquals(users.get(f).id(), returnedUsers.get(f).id());
                     assertEquals(users.get(f).displayName(), returnedUsers.get(f).displayName());
-                    assertEquals(users.get(f).profilePictureUrl(), returnedUsers.get(f).profilePictureUrl());
+                    assertEquals(users.get(f).avatar(), returnedUsers.get(f).avatar());
                 }
             });
     }
