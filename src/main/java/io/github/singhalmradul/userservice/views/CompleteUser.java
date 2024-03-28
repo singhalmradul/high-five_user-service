@@ -11,7 +11,7 @@ public record CompleteUser(
     UUID id,
     String username,
     String email,
-    String profilePictureUrl,
+    String avatar,
     String displayName,
     String bio
 ) implements UserView {
