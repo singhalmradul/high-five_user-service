@@ -22,7 +22,7 @@ public record CompleteUser(
             accountDetails.getUserId(),
             accountDetails.getUsername(),
             accountDetails.getEmail(),
-            user.getProfilePictureUrl(),
+            user.getAvatar(),
             user.getDisplayName(),
             user.getBio()
         );

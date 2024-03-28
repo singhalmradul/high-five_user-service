@@ -16,7 +16,7 @@ public class User {
     @Id
     private UUID id;
 
-    private String profilePictureUrl;
+    private String avatar;
 
     private String displayName;
 

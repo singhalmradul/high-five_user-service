@@ -17,7 +17,7 @@ public record MinimalUser(UUID id, String displayName, String profilePictureUrl)
         this(
             accountDetails.getUserId(),
             user.getDisplayName() == null ? accountDetails.getUsername() : user.getDisplayName(),
-            user.getProfilePictureUrl()
+            user.getAvatar()
         );
     }
 }
