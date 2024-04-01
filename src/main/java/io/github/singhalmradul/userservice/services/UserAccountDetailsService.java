@@ -10,4 +10,6 @@ public interface UserAccountDetailsService {
     UserAccountDetails getById(UUID id);
 
     List<UserAccountDetails> getAll();
+
+    boolean existsById(UUID id);
 }

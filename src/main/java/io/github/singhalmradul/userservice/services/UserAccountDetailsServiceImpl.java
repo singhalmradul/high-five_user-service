@@ -28,4 +28,9 @@ public class UserAccountDetailsServiceImpl implements UserAccountDetailsService 
     public List<UserAccountDetails> getAll() {
         return userAccountDetailsRepository.findAll();
     }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return userAccountDetailsRepository.existsById(id);
+    }
 }
