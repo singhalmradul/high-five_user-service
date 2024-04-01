@@ -1,6 +1,6 @@
 package io.github.singhalmradul.userservice.handlers;
 
-import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+import static org.springframework.web.servlet.function.ServerResponse.ok;
 
 import java.util.UUID;
 
@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebInputException;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 
 import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.services.UserService;
@@ -21,7 +21,6 @@ import io.github.singhalmradul.userservice.views.CompleteUser;
 import io.github.singhalmradul.userservice.views.MinimalUser;
 import io.github.singhalmradul.userservice.views.UserView;
 import lombok.AllArgsConstructor;
-import reactor.core.publisher.Mono;
 
 @Component
 @AllArgsConstructor(onConstructor_ = @Autowired)
@@ -36,31 +35,25 @@ public class UserHandler {
     private UserService userService;
 
     private boolean isMinimalRequest(ServerRequest request) {
-        return request.queryParam("view").map("minimal"::equals).orElse(false);
+        return request.param("view").map("minimal"::equals).orElse(false);
     }
 
     private Class<? extends UserView> getViewType(ServerRequest request) {
         return isMinimalRequest(request) ? MinimalUser.class : CompleteUser.class;
     }
 
-    public Mono<ServerResponse> getAllUsers(ServerRequest request) {
+    public ServerResponse getAllUsers(ServerRequest request) {
 
-        return userService
-            .getAllUsers(getViewType(request))
-            .collectList()
-            .flatMap(users -> ok().bodyValue(users));
+        return ok().body(userService.getAllUsers(getViewType(request)));
     }
 
-    public Mono<ServerResponse> getUserById(ServerRequest request) {
+    public ServerResponse getUserById(ServerRequest request) {
 
         String idStr = request.pathVariable("id");
         validateUUID(idStr);
 
         UUID id = UUID.fromString(idStr);
-        return userService
-            .getUserById(id, getViewType(request))
-            .flatMap(user -> ok().bodyValue(user));
-
+        return ok().body(userService.getUserById(id, getViewType(request)));
     }
 
     // public Mono<ServerResponse> createUser(ServerRequest request) {

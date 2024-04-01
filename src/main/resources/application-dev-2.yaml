@@ -6,7 +6,7 @@ logging:
     '[org.springframework.data.mongodb.core]': DEBUG
 
 server:
-  port: 22222
+  port: 8080
 
 spring:
   application:
@@ -18,7 +18,7 @@ spring:
       database: high-five
       uuid-representation: standard
   datasource:
-    url: jdbc:postgresql://localhost:5432/high-five
+    url: jdbc:postgresql://localhost:5434/high-five
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
