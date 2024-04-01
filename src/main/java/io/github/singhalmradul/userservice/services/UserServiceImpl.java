@@ -70,4 +70,10 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public boolean existsById(UUID id) {
+
+        return userRepository.existsById(id) || accountDetailsService.existsById(id);
+    }
 }

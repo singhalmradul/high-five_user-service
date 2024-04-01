@@ -11,4 +11,5 @@ public interface UserService {
 
     <T extends UserView> T getUserById(UUID id, Class<T> type);
 
+    boolean existsById(UUID id);
 }

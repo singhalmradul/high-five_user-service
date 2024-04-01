@@ -56,17 +56,6 @@ public class UserHandler {
         return ok().body(userService.getUserById(id, getViewType(request)));
     }
 
-    // public Mono<ServerResponse> createUser(ServerRequest request) {
-
-    //     return request.bodyToMono(User.class)
-    //         .switchIfEmpty(
-    //             Mono.error(new ServerWebInputException("unrecognized value in request body"))
-    //         )
-    //         .doOnNext(this::validateUser)
-    //         .flatMap(user -> userService.createUser(user))
-    //         .flatMap(user -> created(URI.create("/users/" + user.getId())).bodyValue(user));
-    // }
-
     private void validateUUID(String id) {
 
         Errors errors = new BeanPropertyBindingResult(id, "id");
@@ -76,6 +65,15 @@ public class UserHandler {
         if (errors.hasErrors()) {
             throw new ServerWebInputException(errors.toString());
         }
+    }
+
+    public ServerResponse existsById(ServerRequest request) {
+
+        String idStr = request.pathVariable("id");
+        validateUUID(idStr);
+
+        UUID id = UUID.fromString(idStr);
+        return ok().body(userService.existsById(id));
     }
 
     private void validateUser(User user) {
