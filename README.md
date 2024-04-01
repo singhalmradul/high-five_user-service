@@ -4,5 +4,5 @@ user-service for project high-five
 
 
 ## TODO:
-- add pprojections to repositories
+- add projections to repositories
 - create put/patch endpoint
