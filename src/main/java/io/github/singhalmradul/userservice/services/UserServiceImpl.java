@@ -9,31 +9,52 @@ import org.springframework.stereotype.Service;
 
 import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.model.UserAccountDetails;
+import io.github.singhalmradul.userservice.proxies.FollowServiceProxy;
 import io.github.singhalmradul.userservice.repositories.UserRepository;
+import io.github.singhalmradul.userservice.views.CompleteUser;
 import io.github.singhalmradul.userservice.views.UserView;
 import lombok.AllArgsConstructor;
 
-@Service
 @AllArgsConstructor(onConstructor_ = @Autowired)
+@Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserAccountDetailsService accountDetailsService;
+    private final FollowServiceProxy followServiceProxy;
 
     @Override
     public <T extends UserView> List<T> getAllUsers(Class<T> type) {
-        return accountDetailsService
+        List<T> userList = accountDetailsService
             .getAll()
             .stream()
             .map(this::saveIfNotExists)
             .map(user -> mapToView(accountDetailsService.getById(user.getId()), user, type)).toList();
+
+        if (CompleteUser.class.equals(type)) {
+            userList.forEach(user -> {
+                var followers = followServiceProxy.getFollowers(user.id());
+                var following = followServiceProxy.getFollowing(user.id());
+                ((CompleteUser) user).followers().addAll(followers);
+                ((CompleteUser) user).following().addAll(following);
+            });
+        }
+        return userList;
 
     }
 
     @Override
     public <T extends UserView> T getUserById(UUID id, Class<T> type) {
         var accountDetails = accountDetailsService.getById(id);
-        return mapToView(accountDetailsService.getById(id), saveIfNotExists(accountDetails), type);
+        T user = mapToView(accountDetailsService.getById(id), saveIfNotExists(accountDetails), type);
+        if (CompleteUser.class.equals(type)) {
+            var followers = followServiceProxy.getFollowers(user.id());
+            var following = followServiceProxy.getFollowing(user.id());
+            ((CompleteUser) user).followers().addAll(followers);
+            ((CompleteUser) user).following().addAll(following);
+        }
+
+        return user;
     }
 
 
