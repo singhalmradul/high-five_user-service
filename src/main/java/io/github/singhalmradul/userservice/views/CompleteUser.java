@@ -1,7 +1,5 @@
 package io.github.singhalmradul.userservice.views;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import io.github.singhalmradul.userservice.model.User;
@@ -15,25 +13,18 @@ public record CompleteUser(
     String email,
     String avatar,
     String displayName,
-    String bio,
-    List<IdOnly> followers,
-    List<IdOnly> following
+    String bio
 ) implements UserView {
 
-    public CompleteUser(
-        UserAccountDetails accountDetails,
-        User user
-    ) {
+    public CompleteUser(UserAccountDetails accountDetails, User user) {
+
         this(
             accountDetails.getUserId(),
             accountDetails.getUsername(),
             accountDetails.getEmail(),
             user.getAvatar(),
             user.getDisplayName(),
-            user.getBio(),
-            new ArrayList<>(),
-            new ArrayList<>()
+            user.getBio()
         );
     }
-
 }
