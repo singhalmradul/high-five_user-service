@@ -46,9 +46,12 @@ public class UserHandlerImpl implements UserHandler {
     public ServerResponse getAllUsers(ServerRequest request) {
 
         String requestUserIdStr = request.param("userId").orElse(null);
-        validateUUID(requestUserIdStr);
+        UUID requestUserId = null;
 
-        UUID requestUserId = UUID.fromString(requestUserIdStr);
+        if (requestUserIdStr != null) {
+            validateUUID(requestUserIdStr);
+            requestUserId = UUID.fromString(requestUserIdStr);
+        }
 
 
         return ok().body(userService.getAllUsers(requestUserId, getViewType(request)));
@@ -59,11 +62,15 @@ public class UserHandlerImpl implements UserHandler {
 
         String idStr = request.pathVariable("id");
         String requestUserIdStr = request.param("userId").orElse(null);
+        UUID requestUserId = null;
         validateUUID(idStr);
-        validateUUID(requestUserIdStr);
+
+        if (requestUserIdStr != null) {
+            validateUUID(requestUserIdStr);
+            requestUserId = UUID.fromString(requestUserIdStr);
+        }
 
         UUID id = UUID.fromString(idStr);
-        UUID requestUserId = UUID.fromString(requestUserIdStr);
 
         return ok().body(userService.getUserById(id, requestUserId, getViewType(request)));
     }

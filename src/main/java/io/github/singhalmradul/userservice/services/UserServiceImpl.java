@@ -51,7 +51,6 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-
     private User saveIfNotExists(UserAccountDetails accountDetails) {
         return userRepository
             .findById(accountDetails.getUserId())
@@ -79,7 +78,16 @@ public class UserServiceImpl implements UserService {
             }
             return type
                     .getConstructor(UserAccountDetails.class, User.class, boolean.class)
-                    .newInstance(accountDetails, user, followServiceProxy.isUserFollowing(requestUserId, user.getId()));
+                    .newInstance(
+                        accountDetails,
+                        user,
+                        requestUserId == null || user.getId().equals(requestUserId)
+                            ? false
+                            : followServiceProxy.isUserFollowing(
+                                requestUserId,
+                                user.getId()
+                            )
+                    );
         } catch (
             InstantiationException
             | IllegalAccessException

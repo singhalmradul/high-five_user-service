@@ -9,7 +9,7 @@ public interface UserService {
 
     <T extends UserView> List<T> getAllUsers(UUID requestUserId, Class<T> type);
 
-    <T extends UserView> T getUserById(UUID id, UUID requestUserId  , Class<T> type);
+    <T extends UserView> T getUserById(UUID id, UUID requestUserId, Class<T> type);
 
     boolean existsById(UUID id);
 }
