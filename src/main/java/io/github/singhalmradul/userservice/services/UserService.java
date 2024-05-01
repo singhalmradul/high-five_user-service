@@ -7,9 +7,9 @@ import io.github.singhalmradul.userservice.views.UserView;
 
 public interface UserService {
 
-    <T extends UserView> List<T> getAllUsers(Class<T> type);
+    <T extends UserView> List<T> getAllUsers(UUID requestUserId, Class<T> type);
 
-    <T extends UserView> T getUserById(UUID id, Class<T> type);
+    <T extends UserView> T getUserById(UUID id, UUID requestUserId  , Class<T> type);
 
     boolean existsById(UUID id);
 }

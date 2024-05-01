@@ -13,10 +13,11 @@ public record CompleteUser(
     String email,
     String avatar,
     String displayName,
-    String bio
+    String bio,
+    boolean isFollowed
 ) implements UserView {
 
-    public CompleteUser(UserAccountDetails accountDetails, User user) {
+    public CompleteUser(UserAccountDetails accountDetails, User user, boolean isFollowed) {
 
         this(
             accountDetails.getUserId(),
@@ -24,7 +25,8 @@ public record CompleteUser(
             accountDetails.getEmail(),
             user.getAvatar(),
             user.getDisplayName(),
-            user.getBio()
+            user.getBio(),
+            isFollowed
         );
     }
 }
