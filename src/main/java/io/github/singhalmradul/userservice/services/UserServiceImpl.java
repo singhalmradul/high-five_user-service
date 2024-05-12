@@ -54,12 +54,12 @@ public class UserServiceImpl implements UserService {
     private User saveIfNotExists(UserAccountDetails accountDetails) {
         return userRepository
             .findById(accountDetails.getUserId())
-            .orElseGet(
-                () -> userRepository.save(
+            .orElseGet(() ->
+                userRepository.save(
                     User.builder()
-                    .id(accountDetails.getUserId())
-                    .displayName(accountDetails.getUsername())
-                    .build()
+                        .id(accountDetails.getUserId())
+                        .displayName(accountDetails.getUsername())
+                        .build()
                 )
             );
     }
