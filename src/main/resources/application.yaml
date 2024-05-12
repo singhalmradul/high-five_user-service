@@ -2,7 +2,7 @@
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URI:http://service-registry:8761/eureka}
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
 
 server:
   port: 22222
