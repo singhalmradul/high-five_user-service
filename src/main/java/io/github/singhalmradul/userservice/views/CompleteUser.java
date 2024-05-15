@@ -17,7 +17,11 @@ public record CompleteUser(
     boolean isFollowed
 ) implements UserView {
 
-    public CompleteUser(UserAccountDetails accountDetails, User user, boolean isFollowed) {
+    public CompleteUser(
+            UserAccountDetails accountDetails,
+            User user,
+            boolean isFollowed
+        ) {
 
         this(
             accountDetails.getUserId(),
@@ -28,5 +32,13 @@ public record CompleteUser(
             user.getBio(),
             isFollowed
         );
+    }
+
+    public User toUser() {
+        return User.builder()
+            .avatar(avatar)
+            .displayName(displayName)
+            .bio(bio)
+            .build();
     }
 }

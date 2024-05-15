@@ -1,6 +1,8 @@
 package io.github.singhalmradul.userservice.configuration;
 
 
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
+import static org.springframework.web.servlet.function.RequestPredicates.accept;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 
 import org.springframework.context.annotation.Bean;
@@ -17,8 +19,10 @@ public class RouterConfiguration {
     RouterFunction<ServerResponse> userRoutes(UserHandler handler) {
         return route()
             .GET("/users", handler::getAllUsers)
+            .PUT("/users/{id}", handler::updateUser)
             .GET("/users/{id}", handler::getUserById)
             .GET("/users/{id}/exists", handler::existsById)
+            .PUT("/users/{id}/avatar", accept(MULTIPART_FORM_DATA), handler::updateAvatar)
             .build();
     }
 }

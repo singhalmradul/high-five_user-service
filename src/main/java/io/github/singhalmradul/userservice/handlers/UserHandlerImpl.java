@@ -2,6 +2,7 @@ package io.github.singhalmradul.userservice.handlers;
 
 import static org.springframework.web.servlet.function.ServerResponse.ok;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +14,13 @@ import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.services.UserService;
 import io.github.singhalmradul.userservice.validators.CompleteUserValidator;
 import io.github.singhalmradul.userservice.validators.UUIDValidator;
 import io.github.singhalmradul.userservice.views.CompleteUser;
 import io.github.singhalmradul.userservice.views.MinimalUser;
 import io.github.singhalmradul.userservice.views.UserView;
+import jakarta.servlet.ServletException;
 import lombok.AllArgsConstructor;
 
 @Component
@@ -96,7 +97,7 @@ public class UserHandlerImpl implements UserHandler {
         return ok().body(userService.existsById(id));
     }
 
-    private void validateUser(User user) {
+    private void validateUser(CompleteUser user) {
 
         Errors errors = new BeanPropertyBindingResult(user, "user");
 
@@ -104,6 +105,52 @@ public class UserHandlerImpl implements UserHandler {
 
         if (errors.hasErrors()) {
             throw new ServerWebInputException(errors.toString());
+        }
+    }
+
+    @Override
+    public ServerResponse updateUser(ServerRequest request) {
+
+        CompleteUser user;
+        try {
+            var idStr = request.pathVariable("id");
+            validateUUID(idStr);
+
+            user = request.body(CompleteUser.class);
+            validateUser(user);
+
+            return ok().body(userService.updateUser(UUID.fromString(idStr), user));
+
+        } catch (
+            ServletException
+            | IOException
+            | IllegalArgumentException
+            | NullPointerException e
+        ) {
+            e.printStackTrace();
+            throw new ServerWebInputException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ServerResponse updateAvatar(ServerRequest request) {
+
+        try {
+            var idStr = request.pathVariable("id");
+            validateUUID(idStr);
+
+            var file = request.multipartData().getFirst("avatar");
+
+            return ok().body(userService.updateAvatar(UUID.fromString(idStr), file));
+
+        } catch (
+            ServletException
+            | IOException
+            | IllegalArgumentException
+            | NullPointerException e
+        ) {
+            e.printStackTrace();
+            throw new ServerWebInputException(e.getMessage());
         }
     }
 }
