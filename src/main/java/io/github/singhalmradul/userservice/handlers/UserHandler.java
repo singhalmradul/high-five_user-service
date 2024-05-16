@@ -11,4 +11,8 @@ public interface UserHandler {
 
     ServerResponse existsById(ServerRequest request);
 
+    ServerResponse updateUser(ServerRequest request);
+
+    ServerResponse updateAvatar(ServerRequest request);
+
 }

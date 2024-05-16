@@ -6,6 +6,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import jakarta.persistence.Cacheable;
+
+@Cacheable
 @FeignClient(name = "follow-service")
 public interface FollowServiceProxy {
 

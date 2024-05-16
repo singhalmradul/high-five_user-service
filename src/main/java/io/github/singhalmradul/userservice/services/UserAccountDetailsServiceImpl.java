@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import io.github.singhalmradul.userservice.exceptions.UserNotFoundException;
@@ -18,10 +19,13 @@ public class UserAccountDetailsServiceImpl implements UserAccountDetailsService 
     private final UserAccountDetailsRepository userAccountDetailsRepository;
 
     @Override
+    @NonNull
     public UserAccountDetails getById(UUID id) {
         return userAccountDetailsRepository
             .findById(id)
-            .orElseThrow(() -> new UserNotFoundException("user with id '" + id + "' doesn't exist"));
+            .orElseThrow(() ->
+                new UserNotFoundException("user with id '" + id + "' doesn't exist")
+            );
     }
 
     @Override
@@ -33,4 +37,22 @@ public class UserAccountDetailsServiceImpl implements UserAccountDetailsService 
     public boolean existsById(UUID id) {
         return userAccountDetailsRepository.existsById(id);
     }
+
+    @Override
+    @NonNull
+    public UserAccountDetails getByUsername(String username) {
+        return userAccountDetailsRepository
+            .findByUsername(username)
+            .orElseThrow(() ->
+                new UserNotFoundException(
+                    "user with username '" + username + "' doesn't exist"
+                )
+            );
+    }
+
+    @Override
+    public UserAccountDetails save(UserAccountDetails accountDetails) {
+        return userAccountDetailsRepository.save(accountDetails);
+    }
+
 }

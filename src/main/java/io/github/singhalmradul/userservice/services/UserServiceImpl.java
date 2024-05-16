@@ -7,12 +7,18 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.mongodb.lang.NonNull;
+
 import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.model.UserAccountDetails;
 import io.github.singhalmradul.userservice.proxies.FollowServiceProxy;
 import io.github.singhalmradul.userservice.repositories.UserRepository;
+import io.github.singhalmradul.userservice.utilities.CloudinaryUtilities;
+import io.github.singhalmradul.userservice.views.CompleteUser;
 import io.github.singhalmradul.userservice.views.MinimalUser;
 import io.github.singhalmradul.userservice.views.UserView;
+import jakarta.servlet.http.Part;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -22,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserAccountDetailsService accountDetailsService;
     private final FollowServiceProxy followServiceProxy;
+    private final CloudinaryUtilities cloudinary;
 
     @Override
     public <T extends UserView> List<T> getAllUsers(UUID requestUserId, Class<T> type) {
@@ -41,7 +48,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public <T extends UserView> T getUserById(UUID id, UUID requestUserId, Class<T> type) {
+    public <T extends UserView> T getUserById(
+        UUID id,
+        UUID requestUserId,
+        Class<T> type
+    ) {
         var accountDetails = accountDetailsService.getById(id);
         return mapToView(
             accountDetailsService.getById(id),
@@ -51,7 +62,7 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-    private User saveIfNotExists(UserAccountDetails accountDetails) {
+    private User saveIfNotExists(@NonNull UserAccountDetails accountDetails) {
         return userRepository
             .findById(accountDetails.getUserId())
             .orElseGet(() ->
@@ -73,21 +84,24 @@ public class UserServiceImpl implements UserService {
         try {
             if (type.isAssignableFrom(MinimalUser.class)) {
                 return type
-                        .getConstructor(UserAccountDetails.class, User.class)
-                        .newInstance(accountDetails, user);
+                    .getConstructor(UserAccountDetails.class, User.class)
+                    .newInstance(accountDetails, user);
             }
             return type
-                    .getConstructor(UserAccountDetails.class, User.class, boolean.class)
-                    .newInstance(
-                        accountDetails,
-                        user,
-                        requestUserId == null || user.getId().equals(requestUserId)
-                            ? false
-                            : followServiceProxy.isUserFollowing(
-                                requestUserId,
-                                user.getId()
-                            )
-                    );
+                .getConstructor(UserAccountDetails.class, User.class, boolean.class)
+                .newInstance(
+                    accountDetails,
+                    user,
+                    // in case of null requestUserId
+                    // or if requestUserId is same as user's id
+                    // no need to invoke followServiceProxy
+                    requestUserId == null || user.getId().equals(requestUserId)
+                        ? false
+                        : followServiceProxy.isUserFollowing(
+                            requestUserId,
+                            user.getId()
+                        )
+                );
         } catch (
             InstantiationException
             | IllegalAccessException
@@ -104,5 +118,55 @@ public class UserServiceImpl implements UserService {
     public boolean existsById(UUID id) {
 
         return userRepository.existsById(id) || accountDetailsService.existsById(id);
+    }
+
+    @Override
+    @Transactional
+    public UserView updateUser(UUID id, CompleteUser completeUser) {
+
+        var accountDetails = accountDetailsService.getById(completeUser.id());
+        var user = userRepository.findById(completeUser.id()).orElseThrow();
+
+        accountDetails.setEmail(completeUser.email());
+        accountDetails.setUsername(completeUser.username());
+
+        user.setDisplayName(completeUser.displayName());
+        user.setBio(completeUser.bio());
+
+        return mapToView(
+            accountDetailsService.save(accountDetails),
+            userRepository.save(user),
+            null,
+            CompleteUser.class
+        );
+    }
+
+
+    @Override
+    @Transactional
+    public String updateAvatar(UUID id, Part part) {
+
+        var user = userRepository.findById(id).orElseThrow();
+
+        user.setAvatar(cloudinary.uploadWithId(part, id.toString()));
+
+        return user.getAvatar();
+    }
+
+    @Override
+    public <T extends UserView> T findUserByUsername(
+        String username,
+        UUID requestUserId,
+        Class<T> type
+    ) {
+
+        var accountDetails = accountDetailsService.getByUsername(username);
+
+        return mapToView(
+            accountDetails,
+            saveIfNotExists(accountDetails),
+            requestUserId,
+            type
+        );
     }
 }
