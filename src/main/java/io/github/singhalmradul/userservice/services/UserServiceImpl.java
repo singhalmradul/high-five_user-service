@@ -149,8 +149,8 @@ public class UserServiceImpl implements UserService {
         var user = userRepository.findById(id).orElseThrow();
 
         user.setAvatar(cloudinary.uploadWithId(part, id.toString()));
-
-        return user.getAvatar();
+        
+        return userRepository.save(user).getAvatar();
     }
 
     @Override
