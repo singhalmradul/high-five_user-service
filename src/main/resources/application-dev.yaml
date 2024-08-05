@@ -20,6 +20,13 @@ spring:
     password: postgres
     driver-class-name: org.postgresql.Driver
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: guest
+    password: guest
+    virtual-host: /
+
   sql:
     init:
       mode: always

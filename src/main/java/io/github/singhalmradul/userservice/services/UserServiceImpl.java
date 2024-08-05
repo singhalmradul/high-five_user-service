@@ -4,11 +4,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.mongodb.lang.NonNull;
 
+import io.github.singhalmradul.userservice.events.UserAccountCreationEvent;
 import io.github.singhalmradul.userservice.model.User;
 import io.github.singhalmradul.userservice.model.UserAccountDetails;
 import io.github.singhalmradul.userservice.proxies.FollowServiceProxy;
@@ -19,10 +20,12 @@ import io.github.singhalmradul.userservice.views.MinimalUser;
 import io.github.singhalmradul.userservice.views.UserView;
 import jakarta.servlet.http.Part;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@RequiredArgsConstructor
 @Service
-@AllArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -30,16 +33,30 @@ public class UserServiceImpl implements UserService {
     private final FollowServiceProxy followServiceProxy;
     private final CloudinaryUtilities cloudinary;
 
+
+    @EventListener
+    public void handleUserAccountCreationEvent(UserAccountCreationEvent event) {
+        var accountDetails = event.getPayload();
+
+        log.info("Inserting : {}", accountDetails);
+
+        userRepository.save(User
+            .builder()
+            .id(accountDetails.getUserId())
+            .displayName(accountDetails.getUsername())
+            .build()
+        );
+    }
+
     @Override
     public <T extends UserView> List<T> getAllUsers(UUID requestUserId, Class<T> type) {
         return accountDetailsService
             .getAll()
             .stream()
-            .map(this::saveIfNotExists)
-            .map(user ->
+            .map(accountDetails ->
                 mapToView(
-                    accountDetailsService.getById(user.getId()),
-                    user,
+                    accountDetails,
+                    getUserById(accountDetails.getUserId()),
                     requestUserId,
                     type
                 )
@@ -53,26 +70,18 @@ public class UserServiceImpl implements UserService {
         UUID requestUserId,
         Class<T> type
     ) {
-        var accountDetails = accountDetailsService.getById(id);
         return mapToView(
             accountDetailsService.getById(id),
-            saveIfNotExists(accountDetails),
+            getUserById(id),
             requestUserId,
             type
         );
     }
 
-    private User saveIfNotExists(@NonNull UserAccountDetails accountDetails) {
+    private User getUserById(@NonNull UUID id) {
         return userRepository
-            .findById(accountDetails.getUserId())
-            .orElseGet(() ->
-                userRepository.save(
-                    User.builder()
-                        .id(accountDetails.getUserId())
-                        .displayName(accountDetails.getUsername())
-                        .build()
-                )
-            );
+            .findById(id)
+            .orElseThrow();
     }
 
     private <T extends UserView> T mapToView(
@@ -95,12 +104,9 @@ public class UserServiceImpl implements UserService {
                     // in case of null requestUserId
                     // or if requestUserId is same as user's id
                     // no need to invoke followServiceProxy
-                    requestUserId == null || user.getId().equals(requestUserId)
-                        ? false
-                        : followServiceProxy.isUserFollowing(
-                            requestUserId,
-                            user.getId()
-                        )
+                    requestUserId != null
+                        && !user.getId().equals(requestUserId)
+                        && followServiceProxy.isUserFollowing(requestUserId, user.getId())
                 );
         } catch (
             InstantiationException
@@ -149,7 +155,7 @@ public class UserServiceImpl implements UserService {
         var user = userRepository.findById(id).orElseThrow();
 
         user.setAvatar(cloudinary.uploadWithId(part, id.toString()));
-        
+
         return userRepository.save(user).getAvatar();
     }
 
@@ -164,7 +170,7 @@ public class UserServiceImpl implements UserService {
 
         return mapToView(
             accountDetails,
-            saveIfNotExists(accountDetails),
+            getUserById(accountDetails.getUserId()),
             requestUserId,
             type
         );
