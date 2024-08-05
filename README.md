@@ -1,8 +1,7 @@
-# high-five_user-service
+# HiV user-service
 
-user-service for project high-five
+user-service for project HiV
 
 
 ## TODO:
 - add projections to repositories
-- remove unnecessary calls to UserAccountDetailsRepository
